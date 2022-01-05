@@ -35,8 +35,11 @@ class AdvancedCalendar extends StatefulWidget {
     this.todayColor,
     this.onDateChange,
     this.onMonthChange,
-
+    this.backgroundColor,
   }) : super(key: key);
+
+  ///background color
+  final Color? backgroundColor;
 
   ///Date change
   final ValueChanged<DateTime>? onDateChange;
@@ -170,7 +173,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Material(
-      color: Colors.transparent,
+      color: widget.backgroundColor ?? Colors.transparent,
       child: DefaultTextStyle(
         style: theme.textTheme.bodyText2!,
         child: GestureDetector(
