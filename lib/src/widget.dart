@@ -124,6 +124,12 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
 
     _monthViewCurrentPage = ValueNotifier(monthPageIndex);
 
+    _monthViewCurrentPage.addListener(() {
+      if(widget.onMonthChange != null){
+        widget.onMonthChange!(_monthRangeList[_monthViewCurrentPage.value].firstDay);
+      }
+    });
+
     _monthPageController = PageController(
       initialPage: monthPageIndex,
     );
@@ -211,9 +217,6 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                         ValueListenableBuilder<int>(
                           valueListenable: _monthViewCurrentPage,
                           builder: (_, value, __) {
-                            if(widget.onMonthChange != null){
-                              widget.onMonthChange!(_monthRangeList[_monthViewCurrentPage.value].firstDay);
-                            }
                             return Header(
                               monthDate:
                               _monthRangeList[_monthViewCurrentPage.value].firstDay,
