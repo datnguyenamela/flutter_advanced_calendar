@@ -211,7 +211,6 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                         ValueListenableBuilder<int>(
                           valueListenable: _monthViewCurrentPage,
                           builder: (_, value, __) {
-                            developer.log("value: month change: ${_monthRangeList[_monthViewCurrentPage.value].firstDay}", name:'tz');
                             if(widget.onMonthChange != null){
                               widget.onMonthChange!(_monthRangeList[_monthViewCurrentPage.value].firstDay);
                             }
@@ -328,7 +327,6 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                                               itemCount: _weekRangeList.length,
                                               physics: closeMonthScroll(),
                                               itemBuilder: (context, index) {
-                                                developer.log("value: _weekRangeList: ${_weekRangeList[index]}", name:'tz');
                                                 return WeekView(
                                                   // dates: _monthRangeList[0].dates.sublist(weekStart, weekStart + 7),
                                                   dates: _weekRangeList[index],
