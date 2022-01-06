@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 extension DateTimeUtil on DateTime {
   /// Generate a new DateTime instance with a zero time.
   DateTime toZeroTime() => DateTime.utc(year, month, day, 12);
@@ -34,6 +36,7 @@ extension DateTimeUtil on DateTime {
       days: (weeksAmount ~/ 2) * 7,
     ));
 
+    developer.log("value: firstViewDate: $firstViewDate", name:'tz');
     return List.generate(
       weeksAmount,
       (weekIndex) {

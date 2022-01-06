@@ -12,6 +12,7 @@ class MonthView extends StatelessWidget {
     this.events,
     this.selectedDayColor,
     this.todayColor,
+    this.dateFontSize
   }) : super(key: key);
 
   final ViewRange monthView;
@@ -23,6 +24,7 @@ class MonthView extends StatelessWidget {
   final List<DateTime>? events;
   final Color? selectedDayColor;
   final Color? todayColor;
+  final double? dateFontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +51,7 @@ class MonthView extends StatelessWidget {
               events: events,
               selectedDayColor: selectedDayColor,
               todayColor: todayColor,
+              dateFontSize: dateFontSize,
             );
           },
           growable: false,

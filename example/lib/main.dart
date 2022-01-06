@@ -12,13 +12,9 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   final _calendarControllerToday = AdvancedCalendarController.today();
-  // final _calendarControllerCustom =
-  //     AdvancedCalendarController.custom(DateTime(2021, 2, 16));
+  final _calendarControllerCustom =
+      AdvancedCalendarController.custom(DateTime(2021, 2, 16));
 
-  final List<DateTime> events = [
-    DateTime.utc(2021, 08, 10, 12),
-    DateTime.utc(2021, 08, 11, 12)
-  ];
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -36,19 +32,26 @@ class _MyAppState extends State<MyApp> {
           children: [
             AdvancedCalendar(
                 controller: _calendarControllerToday,
-                events: events,
-                startWeekDay: 1,
+                startWeekDay: 0,
                 dayFormat: 'EEE',
                 showHeader: true,
                 headerStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.black),
                 weekStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.black),
-              selectedDayColor: Colors.red,
-              todayColor: Colors.green,
-              onDateChange: (date){
+                selectedDayColor: Colors.red,
+                todayColor: Colors.green,
+                dateFontSize: 14,
+                onDateChange: (date){
                   developer.log("value: $date", name:'tz');
+                },
+              onMonthChange: (date){
+                  developer.log("value: date: ${date} month: ${date.month}", name:'tz');
               },
 
             ),
+
+            ElevatedButton(onPressed: (){
+              _calendarControllerToday.value = DateTime.now();
+            }, child: Text("hi"))
             // Theme(
             //   data: ThemeData.light().copyWith(
             //     textTheme: ThemeData.light().textTheme.copyWith(

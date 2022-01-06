@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import 'controller.dart';
 import 'datetime_util.dart';
+import 'dart:developer' as developer;
 
 
 part 'date_box.dart';
@@ -36,7 +37,11 @@ class AdvancedCalendar extends StatefulWidget {
     this.onDateChange,
     this.onMonthChange,
     this.backgroundColor,
+    this.dateFontSize,
   }) : super(key: key);
+
+  ///Date font size
+  final double? dateFontSize;
 
   ///background color
   final Color? backgroundColor;
@@ -206,6 +211,10 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                         ValueListenableBuilder<int>(
                           valueListenable: _monthViewCurrentPage,
                           builder: (_, value, __) {
+                            developer.log("value: month change: ${_monthRangeList[_monthViewCurrentPage.value].firstDay}", name:'tz');
+                            if(widget.onMonthChange != null){
+                              widget.onMonthChange!(_monthRangeList[_monthViewCurrentPage.value].firstDay);
+                            }
                             return Header(
                               monthDate:
                               _monthRangeList[_monthViewCurrentPage.value].firstDay,
@@ -275,6 +284,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                                           events: widget.events,
                                           selectedDayColor: widget.selectedDayColor,
                                           todayColor: widget.todayColor,
+                                          dateFontSize: widget.dateFontSize,
                                         );
                                       },
                                     ),
@@ -289,8 +299,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                                             .dates);
                                     final offset = index /
                                             (widget.weeksInMonthViewAmount - 1) *
-                                            2 -
-                                        1.0;
+                                            2 - 1.0;
                                     return Align(
                                       alignment: Alignment(0.0, offset),
                                       child: IgnorePointer(
@@ -319,7 +328,9 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                                               itemCount: _weekRangeList.length,
                                               physics: closeMonthScroll(),
                                               itemBuilder: (context, index) {
+                                                developer.log("value: _weekRangeList: ${_weekRangeList[index]}", name:'tz');
                                                 return WeekView(
+                                                  // dates: _monthRangeList[0].dates.sublist(weekStart, weekStart + 7),
                                                   dates: _weekRangeList[index],
                                                   selectedDate: selectedDate,
                                                   lineHeight:
@@ -329,7 +340,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                                                   events: widget.events,
                                                   todayColor: widget.todayColor,
                                                     selectedDayColor: widget.selectedDayColor,
-
+                                                  dateFontSize: widget.dateFontSize,
                                                 );
                                               },
                                             ),

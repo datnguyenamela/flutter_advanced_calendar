@@ -11,7 +11,8 @@ class WeekView extends StatelessWidget {
     this.onChanged,
     this.events,
     this.selectedDayColor,
-    this.todayColor
+    this.todayColor,
+    this.dateFontSize
   }) : super(key: key);
 
   final DateTime todayDate = DateTime.now().toZeroTime();
@@ -23,6 +24,7 @@ class WeekView extends StatelessWidget {
   final List<DateTime>? events;
   final Color? selectedDayColor;
   final Color? todayColor;
+  final double? dateFontSize;
 
 
   @override
@@ -59,6 +61,7 @@ class WeekView extends StatelessWidget {
                   child: Text(
                     '${date.day}',
                     style: TextStyle(
+                      fontSize: dateFontSize ?? 14.0,
                       color: isSelected || isToday
                           ? theme.colorScheme.onPrimary
                           : isHighlight
