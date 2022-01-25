@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_calendar/flutter_advanced_calendar.dart';
 import 'dart:developer' as developer;
@@ -14,6 +16,19 @@ class _MyAppState extends State<MyApp> {
   final _calendarControllerToday = AdvancedCalendarController.today();
   final _calendarControllerCustom =
       AdvancedCalendarController.custom(DateTime(2021, 2, 16));
+  StreamController<bool> viewOptionStreamController = StreamController.broadcast();
+  Widget renderViewOption(){
+    return Column(
+      children: const [
+        Text("1day"),
+        SizedBox(height: 12,),
+        Text("7day"),
+        SizedBox(height: 12,),
+        Text("30day"),
+        SizedBox(height: 12,),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +40,14 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         appBar: AppBar(
           title: const Text('Advanced Calendar Example'),
+          actions: [
+            IconButton(onPressed: (){
+              viewOptionStreamController.sink.add(true);
+            }, icon: const Icon(Icons.add),),
+            IconButton(onPressed: (){
+              viewOptionStreamController.sink.add(false);
+            }, icon: const Icon(Icons.remove),),
+          ],
         ),
         body: Column(
           mainAxisSize: MainAxisSize.max,
@@ -40,6 +63,8 @@ class _MyAppState extends State<MyApp> {
                 selectedDayColor: Colors.red,
                 todayColor: Colors.green,
                 dateFontSize: 14,
+                showOptionViewStreamController: viewOptionStreamController,
+                viewOption: renderViewOption(),
                 onDateChange: (date){
                   developer.log("value: $date", name:'tz');
                 },

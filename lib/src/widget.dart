@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -38,8 +40,14 @@ class AdvancedCalendar extends StatefulWidget {
     this.onMonthChange,
     this.backgroundColor,
     this.dateFontSize,
+    this.viewOption,
+    this.showOptionViewStreamController
   }) : super(key: key);
 
+
+  final StreamController<bool>? showOptionViewStreamController;
+
+  final Widget? viewOption;
   ///Date font size
   final double? dateFontSize;
 
@@ -110,11 +118,14 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
   late List<ViewRange> _monthRangeList;
   late List<List<DateTime>> _weekRangeList;
 
+  OverlayEntry? overlayEntry;
+
   PageController? _monthPageController;
   PageController? _weekPageController;
   Offset? _captureOffset;
   DateTime? _todayDate;
   List<String>? _weekNames;
+  final headerKey = GlobalKey();
 
   @override
   void initState() {
@@ -178,10 +189,24 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
         return DateFormat(widget.dayFormat ?? 'EEEE').format(list[index]);
       });
     }
+
+    widget.showOptionViewStreamController?.stream.listen((event) {
+      if(event){
+        if(overlayEntry == null){
+          overlayEntry = _createOverlayEntry();
+          Overlay.of(headerKey.currentState!.context)!.insert(overlayEntry!);
+        }
+      }else{
+        overlayEntry?.remove();
+        overlayEntry = null;
+      }
+    });
+
   }
 
   @override
   Widget build(BuildContext context) {
+
     final theme = Theme.of(context);
     return Material(
       color: widget.backgroundColor ?? Colors.transparent,
@@ -207,9 +232,8 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
-
                 Material(
+                  key: headerKey,
                   elevation: 2,
                   child: Column(
                     children: [
@@ -429,5 +453,24 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
     }
 
     super.dispose();
+  }
+
+  OverlayEntry _createOverlayEntry() {
+
+    RenderBox renderBox = headerKey.currentState!.context.findRenderObject() as RenderBox;
+    var size = renderBox.size;
+    var offset = renderBox.localToGlobal(Offset.zero);
+
+    return OverlayEntry(
+        builder: (context) => Positioned(
+          left: offset.dx,
+          top: offset.dy+ size.height + 1,
+          width: size.width,
+          child: Material(
+            elevation: 4.0,
+            child: widget.viewOption ?? Container(),
+          ),
+        )
+    );
   }
 }
