@@ -41,9 +41,11 @@ class AdvancedCalendar extends StatefulWidget {
     this.backgroundColor,
     this.dateFontSize,
     this.viewOption,
-    this.showOptionViewStreamController
+    this.showOptionViewStreamController,
+    required this.visible
   }) : super(key: key);
 
+  final bool visible;
 
   final StreamController<bool>? showOptionViewStreamController;
 
@@ -117,7 +119,6 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
   late double _animationValue;
   late List<ViewRange> _monthRangeList;
   late List<List<DateTime>> _weekRangeList;
-
   OverlayEntry? overlayEntry;
 
   PageController? _monthPageController;
@@ -126,6 +127,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
   DateTime? _todayDate;
   List<String>? _weekNames;
   final headerKey = GlobalKey();
+  final overlayOffsetKey = GlobalKey();
 
   @override
   void initState() {
@@ -164,7 +166,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
 
     _monthRangeList = List.generate(
       widget.preloadMonthViewAmount,
-      (index) => ViewRange.generateDates(
+          (index) => ViewRange.generateDates(
         _todayDate!,
         _todayDate!.month + (index - _monthPageController!.initialPage),
         widget.weeksInMonthViewAmount,
@@ -194,7 +196,12 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
       if(event){
         if(overlayEntry == null){
           overlayEntry = _createOverlayEntry();
-          Overlay.of(headerKey.currentState!.context)!.insert(overlayEntry!);
+
+          if(widget.visible){
+            Overlay.of(headerKey.currentState!.context)!.insert(overlayEntry!);
+          }else{
+            Overlay.of(overlayOffsetKey.currentState!.context)!.insert(overlayEntry!);
+          }
         }
       }else{
         overlayEntry?.remove();
@@ -232,163 +239,177 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Material(
-                  key: headerKey,
-                  elevation: 2,
+                Visibility(
+                  visible: widget.visible,
                   child: Column(
                     children: [
-                      if(widget.showHeader != null && widget.showHeader!)
-                        ValueListenableBuilder<int>(
-                          valueListenable: _monthViewCurrentPage,
-                          builder: (_, value, __) {
-                            return Header(
-                              monthDate:
-                              _monthRangeList[_monthViewCurrentPage.value].firstDay,
-                              onPressed: _handleTodayPressed,
-                              dateStyle: widget.headerStyle ?? widget.dateStyle,
-                              todayStyle: widget.todayStyle,
-                            );
-                          },
+                      Material(
+                        key: headerKey,
+                        elevation: 2,
+                        child: Column(
+                          children: [
+                            if(widget.showHeader != null && widget.showHeader!)
+                              ValueListenableBuilder<int>(
+                                valueListenable: _monthViewCurrentPage,
+                                builder: (_, value, __) {
+                                  return Header(
+                                    monthDate:
+                                    _monthRangeList[_monthViewCurrentPage.value].firstDay,
+                                    onPressed: _handleTodayPressed,
+                                    dateStyle: widget.headerStyle ?? widget.dateStyle,
+                                    todayStyle: widget.todayStyle,
+                                  );
+                                },
+                              ),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: WeekDays(
+                                style: widget.weekStyle ?? theme.textTheme.bodyText1!.copyWith(
+                                  color: theme.hintColor,
+                                ),
+                                weekNames: _weekNames != null
+                                    ? _weekNames!
+                                    : const <String>['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+                              ),
+                            ),
+                          ],
                         ),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: WeekDays(
-                          style: widget.weekStyle ?? theme.textTheme.bodyText1!.copyWith(
-                            color: theme.hintColor,
-                          ),
-                          weekNames: _weekNames != null
-                              ? _weekNames!
-                              : const <String>['S', 'M', 'T', 'W', 'T', 'F', 'S'],
-                        ),
+                      ),
+                      AnimatedBuilder(
+                        animation: _animationController,
+                        builder: (_, __) {
+                          final height = Tween<double>(
+                            begin: widget.weekLineHeight,
+                            end:
+                            widget.weekLineHeight * widget.weeksInMonthViewAmount,
+                          ).transform(_animationController.value);
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: SizedBox(
+                              height: height,
+                              child: ValueListenableBuilder<DateTime>(
+                                valueListenable: _controller,
+                                builder: (_, selectedDate, __) {
+                                  return Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      IgnorePointer(
+                                        ignoring: _animationController.value == 0.0,
+                                        child: Opacity(
+                                          opacity: Tween<double>(
+                                            begin: 0.0,
+                                            end: 1.0,
+                                          ).evaluate(_animationController),
+                                          child: PageView.builder(
+                                            onPageChanged: (pageIndex) {
+                                              _monthViewCurrentPage.value = pageIndex;
+                                            },
+                                            controller: _monthPageController,
+                                            physics: _animationController.value == 1.0
+                                                ? const AlwaysScrollableScrollPhysics()
+                                                : const NeverScrollableScrollPhysics(),
+                                            itemCount: _monthRangeList.length,
+                                            itemBuilder: (_, pageIndex) {
+                                              return MonthView(
+                                                monthView: _monthRangeList[pageIndex],
+                                                todayDate: _todayDate,
+                                                selectedDate: selectedDate,
+                                                weekLineHeight: widget.weekLineHeight,
+                                                weeksAmount:
+                                                widget.weeksInMonthViewAmount,
+                                                onChanged: _handleDateChanged,
+                                                events: widget.events,
+                                                selectedDayColor: widget.selectedDayColor,
+                                                todayColor: widget.todayColor,
+                                                dateFontSize: widget.dateFontSize,
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                      ValueListenableBuilder<int>(
+                                        valueListenable: _monthViewCurrentPage,
+                                        builder: (_, pageIndex, __) {
+                                          final index = selectedDate.findWeekIndex(
+                                              _monthRangeList[
+                                              _monthViewCurrentPage.value]
+                                                  .dates);
+                                          final offset = index /
+                                              (widget.weeksInMonthViewAmount - 1) *
+                                              2 - 1.0;
+                                          return Align(
+                                            alignment: Alignment(0.0, offset),
+                                            child: IgnorePointer(
+                                              ignoring:
+                                              _animationController.value == 1.0,
+                                              child: Opacity(
+                                                opacity: Tween<double>(
+                                                  begin: 1.0,
+                                                  end: 0.0,
+                                                ).evaluate(_animationController),
+                                                child: SizedBox(
+                                                  height: widget.weekLineHeight,
+                                                  child: PageView.builder(
+                                                    onPageChanged: (indexPage) {
+                                                      _monthViewCurrentPage.value =
+                                                          _monthRangeList.indexWhere(
+                                                                  (index) =>
+                                                              index
+                                                                  .firstDay.month ==
+                                                                  _weekRangeList[
+                                                                  indexPage]
+                                                                      .first
+                                                                      .month);
+                                                    },
+                                                    controller: _weekPageController,
+                                                    itemCount: _weekRangeList.length,
+                                                    physics: closeMonthScroll(),
+                                                    itemBuilder: (context, index) {
+                                                      return WeekView(
+                                                        // dates: _monthRangeList[0].dates.sublist(weekStart, weekStart + 7),
+                                                        dates: _weekRangeList[index],
+                                                        selectedDate: selectedDate,
+                                                        lineHeight:
+                                                        widget.weekLineHeight,
+                                                        onChanged:
+                                                        _handleWeekDateChanged,
+                                                        events: widget.events,
+                                                        todayColor: widget.todayColor,
+                                                        selectedDayColor: widget.selectedDayColor,
+                                                        dateFontSize: widget.dateFontSize,
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      HandleBar(
+                        onPressed: () async {
+                          await _animationController.forward();
+                          _animationValue = 1.0;
+                        },
                       ),
                     ],
                   ),
                 ),
-                AnimatedBuilder(
-                  animation: _animationController,
-                  builder: (_, __) {
-                    final height = Tween<double>(
-                      begin: widget.weekLineHeight,
-                      end:
-                          widget.weekLineHeight * widget.weeksInMonthViewAmount,
-                    ).transform(_animationController.value);
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: SizedBox(
-                        height: height,
-                        child: ValueListenableBuilder<DateTime>(
-                          valueListenable: _controller,
-                          builder: (_, selectedDate, __) {
-                            return Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                IgnorePointer(
-                                  ignoring: _animationController.value == 0.0,
-                                  child: Opacity(
-                                    opacity: Tween<double>(
-                                      begin: 0.0,
-                                      end: 1.0,
-                                    ).evaluate(_animationController),
-                                    child: PageView.builder(
-                                      onPageChanged: (pageIndex) {
-                                        _monthViewCurrentPage.value = pageIndex;
-                                      },
-                                      controller: _monthPageController,
-                                      physics: _animationController.value == 1.0
-                                          ? const AlwaysScrollableScrollPhysics()
-                                          : const NeverScrollableScrollPhysics(),
-                                      itemCount: _monthRangeList.length,
-                                      itemBuilder: (_, pageIndex) {
-                                        return MonthView(
-                                          monthView: _monthRangeList[pageIndex],
-                                          todayDate: _todayDate,
-                                          selectedDate: selectedDate,
-                                          weekLineHeight: widget.weekLineHeight,
-                                          weeksAmount:
-                                              widget.weeksInMonthViewAmount,
-                                          onChanged: _handleDateChanged,
-                                          events: widget.events,
-                                          selectedDayColor: widget.selectedDayColor,
-                                          todayColor: widget.todayColor,
-                                          dateFontSize: widget.dateFontSize,
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                                ValueListenableBuilder<int>(
-                                  valueListenable: _monthViewCurrentPage,
-                                  builder: (_, pageIndex, __) {
-                                    final index = selectedDate.findWeekIndex(
-                                        _monthRangeList[
-                                                _monthViewCurrentPage.value]
-                                            .dates);
-                                    final offset = index /
-                                            (widget.weeksInMonthViewAmount - 1) *
-                                            2 - 1.0;
-                                    return Align(
-                                      alignment: Alignment(0.0, offset),
-                                      child: IgnorePointer(
-                                        ignoring:
-                                            _animationController.value == 1.0,
-                                        child: Opacity(
-                                          opacity: Tween<double>(
-                                            begin: 1.0,
-                                            end: 0.0,
-                                          ).evaluate(_animationController),
-                                          child: SizedBox(
-                                            height: widget.weekLineHeight,
-                                            child: PageView.builder(
-                                              onPageChanged: (indexPage) {
-                                                _monthViewCurrentPage.value =
-                                                    _monthRangeList.indexWhere(
-                                                        (index) =>
-                                                            index
-                                                                .firstDay.month ==
-                                                            _weekRangeList[
-                                                                    indexPage]
-                                                                .first
-                                                                .month);
-                                              },
-                                              controller: _weekPageController,
-                                              itemCount: _weekRangeList.length,
-                                              physics: closeMonthScroll(),
-                                              itemBuilder: (context, index) {
-                                                return WeekView(
-                                                  // dates: _monthRangeList[0].dates.sublist(weekStart, weekStart + 7),
-                                                  dates: _weekRangeList[index],
-                                                  selectedDate: selectedDate,
-                                                  lineHeight:
-                                                      widget.weekLineHeight,
-                                                  onChanged:
-                                                      _handleWeekDateChanged,
-                                                  events: widget.events,
-                                                  todayColor: widget.todayColor,
-                                                    selectedDayColor: widget.selectedDayColor,
-                                                  dateFontSize: widget.dateFontSize,
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                HandleBar(
-                  onPressed: () async {
-                    await _animationController.forward();
-                    _animationValue = 1.0;
-                  },
-                ),
+                Material(
+                  key: overlayOffsetKey,
+                  color: Colors.transparent,
+                  child: Container(
+                    width: double.infinity,
+                  ),
+                )
               ],
             ),
           ),
@@ -433,7 +454,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
 
   ScrollPhysics closeMonthScroll() {
     if ((_monthViewCurrentPage.value ==
-            (widget.preloadMonthViewAmount ~/ 2) + 3 ||
+        (widget.preloadMonthViewAmount ~/ 2) + 3 ||
         _monthViewCurrentPage.value ==
             (widget.preloadMonthViewAmount ~/ 2) - 3)) {
       return const NeverScrollableScrollPhysics();
@@ -456,11 +477,18 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
   }
 
   OverlayEntry _createOverlayEntry() {
+    Size size;
+    Offset offset;
+    try{
+      RenderBox renderBox = headerKey.currentState!.context.findRenderObject() as RenderBox;
+      size = renderBox.size;
+      offset = renderBox.localToGlobal(Offset.zero);
+    }catch(exception){
+      RenderBox renderBox = overlayOffsetKey.currentState!.context.findRenderObject() as RenderBox;
+      size = renderBox.size;
+      offset = renderBox.localToGlobal(Offset.zero);
 
-    RenderBox renderBox = headerKey.currentState!.context.findRenderObject() as RenderBox;
-    var size = renderBox.size;
-    var offset = renderBox.localToGlobal(Offset.zero);
-
+    }
     return OverlayEntry(
         builder: (context) => Positioned(
           left: offset.dx,

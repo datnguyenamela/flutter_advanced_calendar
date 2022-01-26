@@ -16,6 +16,7 @@ class _MyAppState extends State<MyApp> {
   final _calendarControllerToday = AdvancedCalendarController.today();
   final _calendarControllerCustom =
       AdvancedCalendarController.custom(DateTime(2021, 2, 16));
+  bool visible = true;
   StreamController<bool> viewOptionStreamController = StreamController.broadcast();
   Widget renderViewOption(){
     return Column(
@@ -54,6 +55,7 @@ class _MyAppState extends State<MyApp> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AdvancedCalendar(
+              visible: visible,
                 controller: _calendarControllerToday,
                 startWeekDay: 0,
                 dayFormat: 'EEE',
@@ -75,7 +77,9 @@ class _MyAppState extends State<MyApp> {
             ),
 
             ElevatedButton(onPressed: (){
-              _calendarControllerToday.value = DateTime.now();
+              // _calendarControllerToday.value = DateTime.now();
+              visible = !visible;
+              setState(() {});
             }, child: Text("hi"))
             // Theme(
             //   data: ThemeData.light().copyWith(
