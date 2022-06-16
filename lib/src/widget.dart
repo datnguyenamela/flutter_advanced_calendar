@@ -41,6 +41,7 @@ class AdvancedCalendar extends StatefulWidget {
       this.dateFontSize,
       this.viewOption,
       this.showOptionViewStreamController,
+      this.weekDayViewHeight,
       required this.visible})
       : super(key: key);
 
@@ -106,6 +107,9 @@ class AdvancedCalendar extends StatefulWidget {
 
   /// Style of Today button
   final TextStyle? todayStyle;
+
+  /// Height of weekdays view
+  final double? weekDayViewHeight;
 
   @override
   _AdvancedCalendarState createState() => _AdvancedCalendarState();
@@ -267,25 +271,23 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                                   );
                                 },
                               ),
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: WeekDays(
-                                style: widget.weekStyle ??
-                                    theme.textTheme.bodyText1!.copyWith(
-                                      color: theme.hintColor,
-                                    ),
-                                weekNames: _weekNames != null
-                                    ? _weekNames!
-                                    : const <String>[
-                                        'S',
-                                        'M',
-                                        'T',
-                                        'W',
-                                        'T',
-                                        'F',
-                                        'S'
-                                      ],
-                              ),
+                            WeekDays(
+                              weekDayViewHeight: widget.weekDayViewHeight,
+                              style: widget.weekStyle ??
+                                  theme.textTheme.bodyText1!.copyWith(
+                                    color: theme.hintColor,
+                                  ),
+                              weekNames: _weekNames != null
+                                  ? _weekNames!
+                                  : const <String>[
+                                      'S',
+                                      'M',
+                                      'T',
+                                      'W',
+                                      'T',
+                                      'F',
+                                      'S'
+                                    ],
                             ),
                           ],
                         ),
