@@ -8,7 +8,6 @@ import 'controller.dart';
 import 'datetime_util.dart';
 import 'dart:developer' as developer;
 
-
 part 'date_box.dart';
 part 'handlebar.dart';
 part 'header.dart';
@@ -19,37 +18,38 @@ part 'week_view.dart';
 
 /// Advanced Calendar widget.
 class AdvancedCalendar extends StatefulWidget {
-  const AdvancedCalendar({
-    Key? key,
-    this.controller,
-    this.startWeekDay,
-    this.events,
-    this.weekLineHeight = 32.0,
-    this.preloadMonthViewAmount = 13,
-    this.preloadWeekViewAmount = 21,
-    this.weeksInMonthViewAmount = 6,
-    this.todayStyle,
-    this.dateStyle,
-    this.dayFormat,
-    this.showHeader,
-    this.headerStyle,
-    this.weekStyle,
-    this.selectedDayColor,
-    this.todayColor,
-    this.onDateChange,
-    this.onMonthChange,
-    this.backgroundColor,
-    this.dateFontSize,
-    this.viewOption,
-    this.showOptionViewStreamController,
-    required this.visible
-  }) : super(key: key);
+  const AdvancedCalendar(
+      {Key? key,
+      this.controller,
+      this.startWeekDay,
+      this.events,
+      this.weekLineHeight = 32.0,
+      this.preloadMonthViewAmount = 13,
+      this.preloadWeekViewAmount = 21,
+      this.weeksInMonthViewAmount = 6,
+      this.todayStyle,
+      this.dateStyle,
+      this.dayFormat,
+      this.showHeader,
+      this.headerStyle,
+      this.weekStyle,
+      this.selectedDayColor,
+      this.todayColor,
+      this.onDateChange,
+      this.onMonthChange,
+      this.backgroundColor,
+      this.dateFontSize,
+      this.viewOption,
+      this.showOptionViewStreamController,
+      required this.visible})
+      : super(key: key);
 
   final bool visible;
 
   final StreamController<bool>? showOptionViewStreamController;
 
   final Widget? viewOption;
+
   ///Date font size
   final double? dateFontSize;
 
@@ -138,8 +138,9 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
     _monthViewCurrentPage = ValueNotifier(monthPageIndex);
 
     _monthViewCurrentPage.addListener(() {
-      if(widget.onMonthChange != null){
-        widget.onMonthChange!(_monthRangeList[_monthViewCurrentPage.value].firstDay);
+      if (widget.onMonthChange != null) {
+        widget.onMonthChange!(
+            _monthRangeList[_monthViewCurrentPage.value].firstDay);
       }
     });
 
@@ -166,7 +167,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
 
     _monthRangeList = List.generate(
       widget.preloadMonthViewAmount,
-          (index) => ViewRange.generateDates(
+      (index) => ViewRange.generateDates(
         _todayDate!,
         _todayDate!.month + (index - _monthPageController!.initialPage),
         widget.weeksInMonthViewAmount,
@@ -188,32 +189,35 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
       final list = List<DateTime>.generate(
           8, (index) => time.add(Duration(days: index * 1))).toList();
       _weekNames = List<String>.generate(7, (index) {
-        return DateFormat(widget.dayFormat ?? 'EEEE').format(list[index]);
+        if (widget.dayFormat != null) {
+          return DateFormat(widget.dayFormat ?? 'EEEE').format(list[index]);
+        } else {
+          return DateFormat('EEEE').format(list[index]).split("").first;
+        }
       });
     }
 
     widget.showOptionViewStreamController?.stream.listen((event) {
-      if(event){
-        if(overlayEntry == null){
+      if (event) {
+        if (overlayEntry == null) {
           overlayEntry = _createOverlayEntry();
 
-          if(widget.visible){
+          if (widget.visible) {
             Overlay.of(headerKey.currentState!.context)!.insert(overlayEntry!);
-          }else{
-            Overlay.of(overlayOffsetKey.currentState!.context)!.insert(overlayEntry!);
+          } else {
+            Overlay.of(overlayOffsetKey.currentState!.context)!
+                .insert(overlayEntry!);
           }
         }
-      }else{
+      } else {
         overlayEntry?.remove();
         overlayEntry = null;
       }
     });
-
   }
 
   @override
   Widget build(BuildContext context) {
-
     final theme = Theme.of(context);
     return Material(
       color: widget.backgroundColor ?? Colors.transparent,
@@ -248,15 +252,17 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                         elevation: 2,
                         child: Column(
                           children: [
-                            if(widget.showHeader != null && widget.showHeader!)
+                            if (widget.showHeader != null && widget.showHeader!)
                               ValueListenableBuilder<int>(
                                 valueListenable: _monthViewCurrentPage,
                                 builder: (_, value, __) {
                                   return Header(
-                                    monthDate:
-                                    _monthRangeList[_monthViewCurrentPage.value].firstDay,
+                                    monthDate: _monthRangeList[
+                                            _monthViewCurrentPage.value]
+                                        .firstDay,
                                     onPressed: _handleTodayPressed,
-                                    dateStyle: widget.headerStyle ?? widget.dateStyle,
+                                    dateStyle:
+                                        widget.headerStyle ?? widget.dateStyle,
                                     todayStyle: widget.todayStyle,
                                   );
                                 },
@@ -264,12 +270,21 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                             Padding(
                               padding: const EdgeInsets.only(bottom: 8.0),
                               child: WeekDays(
-                                style: widget.weekStyle ?? theme.textTheme.bodyText1!.copyWith(
-                                  color: theme.hintColor,
-                                ),
+                                style: widget.weekStyle ??
+                                    theme.textTheme.bodyText1!.copyWith(
+                                      color: theme.hintColor,
+                                    ),
                                 weekNames: _weekNames != null
                                     ? _weekNames!
-                                    : const <String>['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+                                    : const <String>[
+                                        'S',
+                                        'M',
+                                        'T',
+                                        'W',
+                                        'T',
+                                        'F',
+                                        'S'
+                                      ],
                               ),
                             ),
                           ],
@@ -280,8 +295,8 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                         builder: (_, __) {
                           final height = Tween<double>(
                             begin: widget.weekLineHeight,
-                            end:
-                            widget.weekLineHeight * widget.weeksInMonthViewAmount,
+                            end: widget.weekLineHeight *
+                                widget.weeksInMonthViewAmount,
                           ).transform(_animationController.value);
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -294,7 +309,8 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                                     alignment: Alignment.center,
                                     children: [
                                       IgnorePointer(
-                                        ignoring: _animationController.value == 0.0,
+                                        ignoring:
+                                            _animationController.value == 0.0,
                                         child: Opacity(
                                           opacity: Tween<double>(
                                             begin: 0.0,
@@ -302,26 +318,33 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                                           ).evaluate(_animationController),
                                           child: PageView.builder(
                                             onPageChanged: (pageIndex) {
-                                              _monthViewCurrentPage.value = pageIndex;
+                                              _monthViewCurrentPage.value =
+                                                  pageIndex;
                                             },
                                             controller: _monthPageController,
-                                            physics: _animationController.value == 1.0
+                                            physics: _animationController
+                                                        .value ==
+                                                    1.0
                                                 ? const AlwaysScrollableScrollPhysics()
                                                 : const NeverScrollableScrollPhysics(),
                                             itemCount: _monthRangeList.length,
                                             itemBuilder: (_, pageIndex) {
                                               return MonthView(
-                                                monthView: _monthRangeList[pageIndex],
+                                                monthView:
+                                                    _monthRangeList[pageIndex],
                                                 todayDate: _todayDate,
                                                 selectedDate: selectedDate,
-                                                weekLineHeight: widget.weekLineHeight,
-                                                weeksAmount:
-                                                widget.weeksInMonthViewAmount,
+                                                weekLineHeight:
+                                                    widget.weekLineHeight,
+                                                weeksAmount: widget
+                                                    .weeksInMonthViewAmount,
                                                 onChanged: _handleDateChanged,
                                                 events: widget.events,
-                                                selectedDayColor: widget.selectedDayColor,
+                                                selectedDayColor:
+                                                    widget.selectedDayColor,
                                                 todayColor: widget.todayColor,
-                                                dateFontSize: widget.dateFontSize,
+                                                dateFontSize:
+                                                    widget.dateFontSize,
                                               );
                                             },
                                           ),
@@ -330,53 +353,67 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
                                       ValueListenableBuilder<int>(
                                         valueListenable: _monthViewCurrentPage,
                                         builder: (_, pageIndex, __) {
-                                          final index = selectedDate.findWeekIndex(
-                                              _monthRangeList[
-                                              _monthViewCurrentPage.value]
+                                          final index = selectedDate
+                                              .findWeekIndex(_monthRangeList[
+                                                      _monthViewCurrentPage
+                                                          .value]
                                                   .dates);
                                           final offset = index /
-                                              (widget.weeksInMonthViewAmount - 1) *
-                                              2 - 1.0;
+                                                  (widget.weeksInMonthViewAmount -
+                                                      1) *
+                                                  2 -
+                                              1.0;
                                           return Align(
                                             alignment: Alignment(0.0, offset),
                                             child: IgnorePointer(
                                               ignoring:
-                                              _animationController.value == 1.0,
+                                                  _animationController.value ==
+                                                      1.0,
                                               child: Opacity(
                                                 opacity: Tween<double>(
                                                   begin: 1.0,
                                                   end: 0.0,
-                                                ).evaluate(_animationController),
+                                                ).evaluate(
+                                                    _animationController),
                                                 child: SizedBox(
                                                   height: widget.weekLineHeight,
                                                   child: PageView.builder(
                                                     onPageChanged: (indexPage) {
-                                                      _monthViewCurrentPage.value =
-                                                          _monthRangeList.indexWhere(
-                                                                  (index) =>
-                                                              index
-                                                                  .firstDay.month ==
+                                                      _monthViewCurrentPage
+                                                              .value =
+                                                          _monthRangeList
+                                                              .indexWhere((index) =>
+                                                                  index.firstDay
+                                                                      .month ==
                                                                   _weekRangeList[
-                                                                  indexPage]
+                                                                          indexPage]
                                                                       .first
                                                                       .month);
                                                     },
-                                                    controller: _weekPageController,
-                                                    itemCount: _weekRangeList.length,
+                                                    controller:
+                                                        _weekPageController,
+                                                    itemCount:
+                                                        _weekRangeList.length,
                                                     physics: closeMonthScroll(),
-                                                    itemBuilder: (context, index) {
+                                                    itemBuilder:
+                                                        (context, index) {
                                                       return WeekView(
                                                         // dates: _monthRangeList[0].dates.sublist(weekStart, weekStart + 7),
-                                                        dates: _weekRangeList[index],
-                                                        selectedDate: selectedDate,
-                                                        lineHeight:
-                                                        widget.weekLineHeight,
+                                                        dates: _weekRangeList[
+                                                            index],
+                                                        selectedDate:
+                                                            selectedDate,
+                                                        lineHeight: widget
+                                                            .weekLineHeight,
                                                         onChanged:
-                                                        _handleWeekDateChanged,
+                                                            _handleWeekDateChanged,
                                                         events: widget.events,
-                                                        todayColor: widget.todayColor,
-                                                        selectedDayColor: widget.selectedDayColor,
-                                                        dateFontSize: widget.dateFontSize,
+                                                        todayColor:
+                                                            widget.todayColor,
+                                                        selectedDayColor: widget
+                                                            .selectedDayColor,
+                                                        dateFontSize:
+                                                            widget.dateFontSize,
                                                       );
                                                     },
                                                   ),
@@ -427,10 +464,9 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
 
   void _handleDateChanged(DateTime date) {
     _controller.value = date;
-    if(widget.onDateChange != null){
+    if (widget.onDateChange != null) {
       widget.onDateChange!(date);
     }
-
   }
 
   void _handleFinishDrag() async {
@@ -454,7 +490,7 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
 
   ScrollPhysics closeMonthScroll() {
     if ((_monthViewCurrentPage.value ==
-        (widget.preloadMonthViewAmount ~/ 2) + 3 ||
+            (widget.preloadMonthViewAmount ~/ 2) + 3 ||
         _monthViewCurrentPage.value ==
             (widget.preloadMonthViewAmount ~/ 2) - 3)) {
       return const NeverScrollableScrollPhysics();
@@ -479,26 +515,26 @@ class _AdvancedCalendarState extends State<AdvancedCalendar>
   OverlayEntry _createOverlayEntry() {
     Size size;
     Offset offset;
-    try{
-      RenderBox renderBox = headerKey.currentState!.context.findRenderObject() as RenderBox;
+    try {
+      RenderBox renderBox =
+          headerKey.currentState!.context.findRenderObject() as RenderBox;
       size = renderBox.size;
       offset = renderBox.localToGlobal(Offset.zero);
-    }catch(exception){
-      RenderBox renderBox = overlayOffsetKey.currentState!.context.findRenderObject() as RenderBox;
+    } catch (exception) {
+      RenderBox renderBox = overlayOffsetKey.currentState!.context
+          .findRenderObject() as RenderBox;
       size = renderBox.size;
       offset = renderBox.localToGlobal(Offset.zero);
-
     }
     return OverlayEntry(
         builder: (context) => Positioned(
-          left: offset.dx,
-          top: offset.dy+ size.height + 1,
-          width: size.width,
-          child: Material(
-            elevation: 4.0,
-            child: widget.viewOption ?? Container(),
-          ),
-        )
-    );
+              left: offset.dx,
+              top: offset.dy + size.height + 1,
+              width: size.width,
+              child: Material(
+                elevation: 4.0,
+                child: widget.viewOption ?? Container(),
+              ),
+            ));
   }
 }
